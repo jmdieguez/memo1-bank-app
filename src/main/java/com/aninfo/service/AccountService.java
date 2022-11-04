@@ -10,10 +10,11 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.Optional;
-
 @Service
 public class AccountService {
 
+    static final int MAX_EXTRA_PROMO = 500;
+    static final int MIN_DEPOSIT_PROMO = 2000;
     @Autowired
     private AccountRepository accountRepository;
 
@@ -59,7 +60,14 @@ public class AccountService {
         }
 
         Account account = accountRepository.findAccountByCbu(cbu);
-        account.setBalance(account.getBalance() + sum);
+
+        if (sum >= MIN_DEPOSIT_PROMO) {
+            Double extra = sum / 10; // 10% extra
+            Double max = Double.valueOf(MAX_EXTRA_PROMO);
+            if (extra > max) extra = max;
+            account.setBalance(account.getBalance() + sum + extra);
+        } else account.setBalance(account.getBalance() + sum);
+
         accountRepository.save(account);
 
         return account;
